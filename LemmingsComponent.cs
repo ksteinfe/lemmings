@@ -16,9 +16,7 @@ namespace Lemmings
     {
         public bool is_zombie;
         public double test_var;
-        public double[] vars;
-        public Interval[] ivals;
-        public int[] steps;
+        public VarEngine veng;
 
         public int VariableCount {
             get { return Params.Output.Count; }
@@ -31,14 +29,12 @@ namespace Lemmings
         {
             this.is_zombie = false;
             this.test_var = -1.0;
-            this.vars = new double[]{0.5};
-            this.ivals = new Interval[]{new Interval(0,1)};
-            this.steps = new int[] { 10 };
+            this.veng = new VarEngine();
         }
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("Variable A", "A", "Variable A", GH_ParamAccess.item,0.5);
+            pManager.AddNumberParameter("Variable A", "tA", "Variable A", GH_ParamAccess.item,0.5);
             pManager.AddIntervalParameter("Domain A", "dA", "Domain of Variable A", GH_ParamAccess.item,new Interval(0.0,1.0));
         }
 
@@ -60,21 +56,18 @@ namespace Lemmings
                 }
 
                 // Update local vars and ivals from input parameters
-                this.vars = new double[this.VariableCount];
-                this.ivals = new Interval[this.VariableCount];
-                this.steps = new int[this.VariableCount];
+                this.veng.Init(this.VariableCount);
+
                 for (int i = 0; i < this.VariableCount; i++) {
-                    double dbl = 0.0;
+                    double t = 0.0;
                     Interval ival = new Interval();
-                    if (!DA.GetData(i * 2, ref dbl)) { return; }
+                    if (!DA.GetData(i * 2, ref t)) { return; }
                     if (!DA.GetData(i * 2 + 1, ref ival)) { return; }
-                    this.vars[i] = dbl;
-                    this.ivals[i] = ival;
-                    this.steps[i] = 10;
+                    this.veng.SetVariableAt(i, ival.ParameterAt(t), ival, this.Params.Input[i*2].NickName);
                 }
             }
                         
-            for (int i = 0; i < Params.Output.Count; i++) DA.SetData(i, this.vars[i]);
+            for (int i = 0; i < Params.Output.Count; i++) DA.SetData(i, this.veng.values[i]);
 
             //if (this.is_zombie) DA.SetData(1, test_var);
             //else DA.SetData(1, var_aa);
@@ -127,10 +120,10 @@ namespace Lemmings
         }
         IGH_Param IGH_VariableParameterComponent.CreateParameter(GH_ParameterSide side, int index) {
 
-            String ltr = GH_ComponentParamServer.InventUniqueNickname("ABCDEFGHIJKLMNOPQRSTUVWXYZ", Params.Input);
+            String ltr = GH_ComponentParamServer.InventUniqueNickname("ABCDEFGHIJKLMNOPQRSTUVWXYZ", Params.Output);
 
             Param_Number param = new Param_Number {
-                NickName = ltr,
+                NickName = "t" + ltr,
                 Name = "Variable" + ltr,
                 Description = Name,
                 Access = GH_ParamAccess.item
@@ -182,18 +175,7 @@ namespace Lemmings
 
         public override Guid ComponentGuid { get { return new Guid("{0b0e7702-1dec-4ce9-be54-bb4813b022a3}"); } }
 
-        
-        public List<double[]> VariableStates() {
-            List<double[]> values = new List<double[]>();
 
-            for (int i = 0; i < this.VariableCount; i++) {
-                double[] dbls = new double[this.steps[i]];
-                for (int j = 0; j <= this.steps[i]; j++) dbls[j] = this.ivals[i].ParameterAt((double)j / (double)this.steps[i]);
-            }
-
-            // TODO: recurse through values and return a list of variable states
-            return values;
-        }
         
 
     }

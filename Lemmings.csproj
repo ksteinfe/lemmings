@@ -74,10 +74,20 @@
     <Compile Include="RunForm.Designer.cs">
       <DependentUpon>RunForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="VarControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="VarControl.Designer.cs">
+      <DependentUpon>VarControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="VarEngine.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="RunForm.resx">
       <DependentUpon>RunForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="VarControl.resx">
+      <DependentUpon>VarControl.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

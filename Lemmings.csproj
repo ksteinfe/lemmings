@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CodeFile1.cs" />
     <Compile Include="JSONComponent.cs" />
     <Compile Include="Parameters.cs" />
     <Compile Include="LemmingsComponent.cs" />

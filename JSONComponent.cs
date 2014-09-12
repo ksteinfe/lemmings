@@ -37,11 +37,10 @@ namespace Lemmings {
             String name = this.DefaultName;
             this.JSONIsPopulated = false;
             this.JSONString = "";
-
             DA.GetData(0, ref name);
             Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo> tree = new Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo>();
             if (!DA.GetDataTree(1, out tree)) { return; }
-
+            
             
             String JSONOpen = "";
             String JSONClose = "";

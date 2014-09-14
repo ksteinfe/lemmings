@@ -23,16 +23,17 @@ using Grasshopper.Kernel.Types;
 
 namespace Lemmings {
     public partial class RunForm : Form {
-        public GH_Document gh_doc;
-        public LemmingsComponent parent;
+        public GH_Document GHDoc;
+        public LemmingsComponent LemmingComponentParent;
         //public Rhino.RhinoApp rh_app;
 
-        private List<LemmingsIntParameter> int_params;
+        private List<MeshToOBJComponent> MeshComponents;
+        private List<JSONComponent> JSONComponents;
 
         public RunForm(GH_Document doc, LemmingsComponent prnt) {
             InitializeComponent();
-            this.gh_doc = doc;
-            this.parent = prnt;
+            this.GHDoc = doc;
+            this.LemmingComponentParent = prnt;
             //this.rh_app = app;
             //int n = gh_doc.ObjectCount;
 
@@ -40,56 +41,74 @@ namespace Lemmings {
             //LemmingsIntParameter test = (LemmingsIntParameter) doc.FindComponent(new LemmingsIntParameter().ComponentGuid);
             //int ee = (int) test.VolatileData.get_Branch(0)[0];
 
-            // finds LemmingsIntParameters
-            this.int_params = new List<LemmingsIntParameter>();
+            // finds LemmingsMeshComponents and LemmingsJSONComponents in current document
+            this.MeshComponents = new List<MeshToOBJComponent>();
+            this.JSONComponents = new List<JSONComponent>();
+            Guid mshid = new MeshToOBJComponent().ComponentGuid;
+            Guid jsonid = new JSONComponent().ComponentGuid;
             foreach (IGH_DocumentObject docobj in doc.Objects){
-                //Rhino.RhinoApp.WriteLine(docobj.ComponentGuid.ToString());
-                if (docobj.ComponentGuid == new LemmingsIntParameter().ComponentGuid) int_params.Add((LemmingsIntParameter)docobj);
+                if (docobj.ComponentGuid == mshid) MeshComponents.Add((MeshToOBJComponent)docobj);
+                if (docobj.ComponentGuid == jsonid) JSONComponents.Add((JSONComponent)docobj);
             }
 
-            for (int i = 0; i < this.parent.veng.VarCount; i++) { 
+            for (int i = 0; i < this.LemmingComponentParent.veng.VarCount; i++) { 
                 VarControl varControlA;
-                varControlA = new Lemmings.VarControl(i,this.parent.veng.names[i],this.parent.veng.ivals[i], this.parent.veng.GetStepsAt(i));
+                varControlA = new Lemmings.VarControl(i,this.LemmingComponentParent.veng.names[i],this.LemmingComponentParent.veng.ivals[i], this.LemmingComponentParent.veng.GetStepsAt(i));
                 this.flowLayoutPanel1.Controls.Add(varControlA);
                 varControlA.CountChangedEvent += new EventHandler(VarControl_CountChanged);
             }
 
-            this.PermutationCountLabel.Text = this.parent.veng.Permutations.Count.ToString() + " Permutations";
+            this.PermutationCountLabel.Text = this.LemmingComponentParent.veng.Permutations.Count.ToString() + " Permutations";
 
 
 
-            //int_params[0].toJSON();
+            //JSONComponents[0].toJSON();
             // setup dicionary, one key for each int_param found
             // see this: http://james.newtonking.com/json
         }
 
         protected void VarControl_CountChanged(object sender, EventArgs e) {
             VarControl varControl = (VarControl) sender;
-            this.parent.veng.SetStepsAt(varControl.VarIndex,varControl.count);
-            this.PermutationCountLabel.Text = this.parent.veng.Permutations.Count.ToString() + " Permutations";
+            this.LemmingComponentParent.veng.SetStepsAt(varControl.VarIndex,varControl.count);
+            this.PermutationCountLabel.Text = this.LemmingComponentParent.veng.Permutations.Count.ToString() + " Permutations";
         }
 
 
-        private void button1_Click(object sender, EventArgs e) {
-            Rhino.RhinoApp.WriteLine("isZombie = "+this.parent.is_zombie.ToString());
+        private void RunButton_Click(object sender, EventArgs e) {
+            Rhino.RhinoApp.WriteLine("isZombie = "+this.LemmingComponentParent.is_zombie.ToString());
             String FilePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\erase.txt";
+            System.IO.File.WriteAllLines(FilePath, new String[] {"{","}"});
+
             int n = 0;
-            foreach (double[] vars in this.parent.veng.Permutations) {
+            foreach (double[] vars in this.LemmingComponentParent.veng.Permutations) {
+                List<String> lines = new List<string>(System.IO.File.ReadAllLines(FilePath));
+                lines.RemoveAt(lines.Count - 1);
+                //lines = lines.Where((val, idx) => idx != lines.Count() - 1).ToArray(); // remove last line of existing text file
+
                 Stopwatch watch = new Stopwatch();
+
                 watch.Start();
-
-                for (int i = 0; i < vars.Length; i++) this.parent.veng.SetValueAt(i,vars[i]);
-                this.parent.ExpireSolution(true);
-
-
-                // Create a string array that consists of three lines. 
-                string[] strings = { "First sr", "Second sr", "Third sr" };
-                // WriteAllLines creates a file, writes a collection of strings to the file, 
-                // and then closes the file.
-                using (StreamWriter sw = File.AppendText(FilePath)) { sw.WriteLine(n.ToString() + " " + String.Join(" - ", strings)); }
-
+                for (int i = 0; i < vars.Length; i++) this.LemmingComponentParent.veng.SetValueAt(i,vars[i]);
+                this.LemmingComponentParent.ExpireSolution(true);
                 watch.Stop();
-                this.PermutationCountLabel.Text = n.ToString() + " / " + this.parent.veng.Permutations.Count.ToString() + " Permutations (last took "+Math.Round((double)(watch.Elapsed.Milliseconds/1000.0),2).ToString()+" s)";
+                double CalculationTime = Math.Round((double)(watch.Elapsed.Milliseconds / 1000.0), 2);
+
+                
+                if (n>0) lines[lines.Count-1] = lines[lines.Count-1] + ","; // add a comma to the end of the last entry
+                System.IO.File.WriteAllLines(FilePath, lines);
+                List<String> dVars = JSONStrings();
+                List<String> iVars = vars.Select(dbl => Math.Round(dbl,4).ToString()).ToList();
+                for (int i = 0; i < vars.Length; i++) iVars[i] = @""""+this.LemmingComponentParent.veng.names[i] + @""":"+ iVars[i];
+
+                using (StreamWriter sw = File.AppendText(FilePath)) {
+                    sw.Write(@"""p" + n.ToString() + @""":{");
+                    sw.Write(@"""CalculationTime"":" + CalculationTime.ToString() + @"");
+                    sw.Write(@",""IndependentVariables"":{" + String.Join(",", iVars) + "}");
+                    if (dVars.Count > 0) sw.Write(@",""DependentVariables"":{"+String.Join(",", dVars)+"}");
+                    sw.Write("}\n}");
+                }
+                
+                this.PermutationCountLabel.Text = n.ToString() + " / " + this.LemmingComponentParent.veng.Permutations.Count.ToString() + " Permutations (last took "+CalculationTime.ToString()+" s)";
                 n += 1;
                 this.Refresh();
             }
@@ -117,6 +136,19 @@ namespace Lemmings {
                 //slider.ExpireSolution(true);
             }
              */
+        }
+
+        private List<string> JSONStrings() {
+            List<String> strings = new List<string>();
+            int v = 0;
+            foreach (JSONComponent c in JSONComponents) {
+                if (c.JSONIsPopulated) {
+                    if (c.name == c.DefaultName) strings.Add(@"""dv" + v + @""":{" + c.JSONString + "}");
+                    else strings.Add(c.JSONString);
+                }
+                v++;
+            }
+            return strings;
         }
 
     }

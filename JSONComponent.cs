@@ -9,9 +9,11 @@ using Rhino.Geometry;
 namespace Lemmings {
     public class JSONComponent : GH_Component {
 
+        public String name;
         public String DefaultName = "UNTITLED";
         public bool JSONIsPopulated;
         public String JSONString;
+
 
         enum DataStructure { Singleton, List, Tree };
 
@@ -34,7 +36,7 @@ namespace Lemmings {
         }
 
         protected override void SolveInstance(IGH_DataAccess DA) {
-            String name = this.DefaultName;
+            this.name = this.DefaultName;
             this.JSONIsPopulated = false;
             this.JSONString = "";
             DA.GetData(0, ref name);

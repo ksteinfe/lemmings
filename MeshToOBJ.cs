@@ -7,13 +7,13 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 namespace Lemmings {
-    public class MeshToOBJ : GH_Component {
+    public class MeshToOBJComponent : GH_Component {
 
         List<Mesh> meshes;
         bool isActive;
         String filepath;
         
-        public MeshToOBJ()
+        public MeshToOBJComponent()
             : base("Mesh to OBJ File", "MeshToOBJ",
                 "Saves a given collection of meshes to an OBJ File",
                 "Params", "Lemmings") {

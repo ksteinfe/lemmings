@@ -27,6 +27,7 @@
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.PermutationCountLabel = new System.Windows.Forms.ToolStripLabel();
+            this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -91,5 +92,6 @@
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripLabel PermutationCountLabel;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
     }
 }

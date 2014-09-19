@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using System.Drawing;
 
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
@@ -19,10 +20,11 @@ namespace Lemmings {
                 "Params", "Lemmings") {
                     this.isActive = false;
                     this.filepath = "";
+                    this.meshes = new List<Mesh>();
         }
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
-            pManager.AddTextParameter("Filepath", "F", "A path to the desired file location",GH_ParamAccess.item);
+            pManager.AddTextParameter("Filepath", "F", "A path to the desired file location",GH_ParamAccess.item,"");
             //pManager.AddBooleanParameter("IsActive", "B", "Component only saves files is this is set to True", GH_ParamAccess.item, false);
             pManager.AddMeshParameter("Mesh", "M", "The collection of meshes to save", GH_ParamAccess.tree);
         }
@@ -31,30 +33,57 @@ namespace Lemmings {
         }
 
         protected override void SolveInstance(IGH_DataAccess DA) {
-            if (!DA.GetData(0, ref this.filepath)) { return; }
-            //bool isActive = false;
-            //if (!DA.GetData(1, ref isActive)) { return; }
             Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.GH_Mesh> meshtree = new Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.GH_Mesh>();
-            if (!DA.GetDataTree(1, out meshtree)) { return; }
-
+            if (!DA.GetDataTree(1, out meshtree)) return; 
             this.meshes = new List<Mesh>();
             foreach (GH_Mesh ghmsh in meshtree.FlattenData()) this.meshes.Add(ghmsh.Value);
 
+            if (!DA.GetData(0, ref this.filepath)) return;
+            if (this.filepath == "") {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No files will be written until you define a filepath.");
+                return;
+            }
             if (isActive) DoSave(this.filepath);
             else AddRuntimeMessage(GH_RuntimeMessageLevel.Remark, "No files will be written unless you click on 'Save One File' or 'Save Files Constantly' in the dropdown menu.");
             
         }
 
-        public void DoSave(String filepath) {
+        public bool DoSave(String filepath, System.Drawing.Size? ViewCaptureSize = null ) {
+            if (filepath == "") {
+                AddRuntimeMessage(GH_RuntimeMessageLevel.Error, "Please set a filepath");
+                this.ExpireSolution(false);
+                return false;
+            }
+            //if (num >= 0) filepath += "_" + num + ".obj";
+            //filepath += ".obj";
             List<Guid> ids = new List<Guid>();
             foreach (Mesh msh in this.meshes) ids.Add(Rhino.RhinoDoc.ActiveDoc.Objects.AddMesh(msh));
+            if (ViewCaptureSize.HasValue) CaptureViewToFile(filepath, Rhino.RhinoDoc.ActiveDoc.Views.ActiveView, ViewCaptureSize.Value);
 
             Rhino.RhinoDoc.ActiveDoc.Objects.Select(ids);
             //Rhino.RhinoApp.RunScript("SelAll", true);
-            Rhino.RhinoApp.RunScript("-Export " + filepath + " _Enter _Enter", false);
+            Rhino.RhinoApp.RunScript("-Export " + filepath + ".obj _Enter _Enter", false);
             Rhino.RhinoApp.RunScript("Delete", false);
+            return true;
         }
 
+        private void CaptureViewToFile(String filepath, Rhino.Display.RhinoView rhview, System.Drawing.Size size) {
+            //String FilePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\erase_" + viewnum.ToString() + ".png";
+            Bitmap bmp = rhview.CaptureToBitmap(size);
+            bmp.Save(filepath+".png", System.Drawing.Imaging.ImageFormat.Png);
+            /*
+            System.Drawing.Size imgsize = new System.Drawing.Size(800, 800);
+            List<Rhino.Display.RhinoView> views = new List<Rhino.Display.RhinoView>();
+            views.Add(Rhino.RhinoDoc.ActiveDoc.Views.ActiveView);
+            foreach (Rhino.DocObjects.ViewInfo vi in Rhino.RhinoDoc.ActiveDoc.NamedViews) views.Add(Rhino.RhinoDoc.ActiveDoc.Views.Find(vi.Name, true));
+
+            for (int n = 0; n < views.Count; n++) {
+                String FilePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\erase_" + n.ToString() + ".jpg";
+                //Bitmap bmp = Rhino.RhinoDoc.ActiveDoc.Views.ActiveView.CaptureToBitmap(imgsize);
+                Bitmap bmp = views[n].CaptureToBitmap(imgsize);
+                bmp.Save(FilePath, System.Drawing.Imaging.ImageFormat.Jpeg);
+            }*/
+        }
 
         public override void AppendAdditionalMenuItems(ToolStripDropDown menu) {
             // Place a call to the base class to ensure the default parameter menu is still there and operational.

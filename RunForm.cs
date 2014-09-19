@@ -8,6 +8,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 
 using Rhino;
 using Rhino.Geometry;
@@ -75,32 +76,49 @@ namespace Lemmings {
 
 
         private void RunButton_Click(object sender, EventArgs e) {
-            Rhino.RhinoApp.WriteLine("isZombie = "+this.LemmingComponentParent.is_zombie.ToString());
-            String FilePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\erase.txt";
-            System.IO.File.WriteAllLines(FilePath, new String[] {"{","}"});
+            Rhino.RhinoApp.WriteLine("isZombie = " + this.LemmingComponentParent.is_zombie.ToString());
+            //String JSONPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\erase.txt";
+
+            GH_PreviewMode prevMode = this.GHDoc.PreviewMode;
+            this.GHDoc.PreviewMode = GH_PreviewMode.Disabled;
+            Rhino.RhinoDoc.ActiveDoc.Views.RedrawEnabled = false;
+
+            if (folderBrowserDialog1.ShowDialog() != DialogResult.OK) return;
+            String SelectedPath = folderBrowserDialog1.SelectedPath;
+            String TempPath = System.IO.Path.Combine(SelectedPath, "LemmingsTemp");
+            System.IO.Directory.CreateDirectory(TempPath);
+            String DataPath = System.IO.Path.Combine(TempPath, "data");
+            System.IO.Directory.CreateDirectory(DataPath);
+            String JSONPath = System.IO.Path.Combine(TempPath, "summary.json");
+            System.IO.File.WriteAllLines(JSONPath, new String[] {"{","}"});
+
+            
 
             int n = 0;
             foreach (double[] vars in this.LemmingComponentParent.veng.Permutations) {
-                List<String> lines = new List<string>(System.IO.File.ReadAllLines(FilePath));
+                
+
+                List<String> lines = new List<string>(System.IO.File.ReadAllLines(JSONPath));
                 lines.RemoveAt(lines.Count - 1);
                 //lines = lines.Where((val, idx) => idx != lines.Count() - 1).ToArray(); // remove last line of existing text file
 
-                Stopwatch watch = new Stopwatch();
+                // UPDATE GH SOLUTION
+                double CalculationTime = UpdateGH(vars);
 
-                watch.Start();
-                for (int i = 0; i < vars.Length; i++) this.LemmingComponentParent.veng.SetValueAt(i,vars[i]);
-                this.LemmingComponentParent.ExpireSolution(true);
-                watch.Stop();
-                double CalculationTime = Math.Round((double)(watch.Elapsed.Milliseconds / 1000.0), 2);
+                // SAVE MESH FILES
+                foreach (MeshToOBJComponent meshcomponent in this.MeshComponents) {
+                    string name = n.ToString()+"_"+meshcomponent.NickName;
+                    meshcomponent.DoSave(System.IO.Path.Combine(DataPath, name), new Size(800, 800));
+                }
 
-                
+                // WRITE JSON
                 if (n>0) lines[lines.Count-1] = lines[lines.Count-1] + ","; // add a comma to the end of the last entry
-                System.IO.File.WriteAllLines(FilePath, lines);
+                System.IO.File.WriteAllLines(JSONPath, lines);
                 List<String> dVars = JSONStrings();
                 List<String> iVars = vars.Select(dbl => Math.Round(dbl,4).ToString()).ToList();
                 for (int i = 0; i < vars.Length; i++) iVars[i] = @""""+this.LemmingComponentParent.veng.names[i] + @""":"+ iVars[i];
 
-                using (StreamWriter sw = File.AppendText(FilePath)) {
+                using (StreamWriter sw = File.AppendText(JSONPath)) {
                     sw.Write(@"""p" + n.ToString() + @""":{");
                     sw.Write(@"""CalculationTime"":" + CalculationTime.ToString() + @"");
                     sw.Write(@",""IndependentVariables"":{" + String.Join(",", iVars) + "}");
@@ -112,8 +130,16 @@ namespace Lemmings {
                 n += 1;
                 this.Refresh();
             }
-            this.PermutationCountLabel.Text = n + " Permutations Completed";
 
+
+            string zipname = "Lemmings_"+DateTime.Now.ToString("yyMMddHHmmss")+".zip";
+            ZipFile.CreateFromDirectory(TempPath, System.IO.Path.Combine(SelectedPath, zipname));
+            Directory.Delete(TempPath, true);
+
+            this.PermutationCountLabel.Text = n + " Permutations Completed";
+            this.GHDoc.PreviewMode = prevMode;
+            this.GHDoc.ExpirePreview(true);
+            Rhino.RhinoDoc.ActiveDoc.Views.RedrawEnabled = true;
             /*
             //this.parent.Params.Output[0].AddVolatileData()
 
@@ -138,6 +164,16 @@ namespace Lemmings {
              */
         }
 
+        private double UpdateGH(double[] vars) {
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            for (int i = 0; i < vars.Length; i++) this.LemmingComponentParent.veng.SetValueAt(i, vars[i]);
+            this.LemmingComponentParent.ExpireSolution(true);
+            watch.Stop();
+            double CalculationTime = Math.Round((double)(watch.Elapsed.Milliseconds / 1000.0), 2);
+            return CalculationTime;
+        }
+
         private List<string> JSONStrings() {
             List<String> strings = new List<string>();
             int v = 0;
@@ -150,6 +186,9 @@ namespace Lemmings {
             }
             return strings;
         }
+
+
+
 
     }
 

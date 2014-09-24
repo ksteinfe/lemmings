@@ -179,8 +179,9 @@ namespace Lemmings {
             int v = 0;
             foreach (JSONComponent c in JSONComponents) {
                 if (c.JSONIsPopulated) {
-                    if (c.name == c.DefaultName) strings.Add(@"""dv" + v + @""":{" + c.JSONString + "}");
-                    else strings.Add(c.JSONString);
+                    //if (c.namexxx == c.DefaultName) strings.Add(@"""dv" + v + @""":{" + c.JSONString + "}");
+                    //else strings.Add(c.JSONString);
+                    strings.Add(c.JSONString);
                 }
                 v++;
             }

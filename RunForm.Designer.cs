@@ -76,9 +76,13 @@
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.flowLayoutPanel1);
             this.Controls.Add(this.button1);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "RunForm";
+            this.ShowIcon = false;
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "   ";
+            this.TopMost = true;
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);

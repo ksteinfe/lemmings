@@ -18,6 +18,11 @@ namespace Lemmings
         public double test_var;
         public VarEngine veng;
 
+        public bool Output3DM;
+        public bool OutputWRL;
+        public bool OutputOBJ;
+        public bool OutputPNG;
+
         public int VariableCount {
             get { return Params.Output.Count; }
         }
@@ -30,6 +35,11 @@ namespace Lemmings
             this.is_zombie = false;
             this.test_var = -1.0;
             this.veng = new VarEngine();
+
+            this.Output3DM = true;
+            this.OutputWRL = true;
+            this.OutputOBJ = true;
+            this.OutputPNG = true;
         }
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
@@ -169,7 +179,7 @@ namespace Lemmings
             get {
                 // You can add image files to your project resources and access them like this:
                 //return Resources.IconForThisComponent;
-                return null;
+                return Lemmings.Properties.Resources.Icons_LemmingsComponent;
             }
         }
 

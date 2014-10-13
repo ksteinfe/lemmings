@@ -6,17 +6,17 @@ using System.Drawing;
 using Grasshopper.Kernel;
 using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
-
+/*
 namespace Lemmings {
-    public class MeshToOBJComponent : GH_Component {
+    public class MeshToOBJ : GH_Component {
 
         List<Mesh> meshes;
         bool isActive;
         String filepath;
-        
-        public MeshToOBJComponent()
-            : base("Mesh to OBJ File", "MeshToOBJ",
-                "Saves a given collection of meshes to an OBJ File",
+
+        public MeshToOBJ()
+            : base("Lemmings Mesh Listener", "MeshListen",
+                "Saves a given collection of meshes to a Lemmings ZIP file",
                 "Params", "Lemmings") {
                     this.isActive = false;
                     this.filepath = "";
@@ -24,7 +24,7 @@ namespace Lemmings {
         }
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
-            pManager.AddTextParameter("Filepath", "F", "A path to the desired file location",GH_ParamAccess.item,"");
+            //pManager.AddTextParameter("Filepath", "F", "A path to the desired file location",GH_ParamAccess.item,"");
             //pManager.AddBooleanParameter("IsActive", "B", "Component only saves files is this is set to True", GH_ParamAccess.item, false);
             pManager.AddMeshParameter("Mesh", "M", "The collection of meshes to save", GH_ParamAccess.tree);
         }
@@ -38,7 +38,7 @@ namespace Lemmings {
             this.meshes = new List<Mesh>();
             foreach (GH_Mesh ghmsh in meshtree.FlattenData()) this.meshes.Add(ghmsh.Value);
 
-            if (!DA.GetData(0, ref this.filepath)) return;
+            //if (!DA.GetData(0, ref this.filepath)) return;
             if (this.filepath == "") {
                 AddRuntimeMessage(GH_RuntimeMessageLevel.Warning, "No files will be written until you define a filepath.");
                 return;
@@ -71,7 +71,7 @@ namespace Lemmings {
             //String FilePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\erase_" + viewnum.ToString() + ".png";
             Bitmap bmp = rhview.CaptureToBitmap(size);
             bmp.Save(filepath+".png", System.Drawing.Imaging.ImageFormat.Png);
-            /*
+            
             System.Drawing.Size imgsize = new System.Drawing.Size(800, 800);
             List<Rhino.Display.RhinoView> views = new List<Rhino.Display.RhinoView>();
             views.Add(Rhino.RhinoDoc.ActiveDoc.Views.ActiveView);
@@ -82,7 +82,7 @@ namespace Lemmings {
                 //Bitmap bmp = Rhino.RhinoDoc.ActiveDoc.Views.ActiveView.CaptureToBitmap(imgsize);
                 Bitmap bmp = views[n].CaptureToBitmap(imgsize);
                 bmp.Save(FilePath, System.Drawing.Imaging.ImageFormat.Jpeg);
-            }*/
+            }
         }
 
         public override void AppendAdditionalMenuItems(ToolStripDropDown menu) {
@@ -94,10 +94,12 @@ namespace Lemmings {
             //return true;
         }
 
+        
         private void Menu_SaveFilesConstantlyClicked(Object sender, EventArgs e) {
             this.isActive = !this.isActive;
             this.ExpireSolution(true);
         }
+        
 
         private void Menu_SaveOneFileClicked(Object sender, EventArgs e) {
             DoSave(this.filepath);
@@ -109,4 +111,4 @@ namespace Lemmings {
 
         public override Guid ComponentGuid { get { return new Guid("{18414208-23be-48c5-9259-63f3ea4f62aa}"); } }
     }
-}
+} */ 

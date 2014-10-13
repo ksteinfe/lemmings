@@ -68,12 +68,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeFile1.cs" />
-    <Compile Include="JSONComponent.cs" />
-    <Compile Include="MeshToOBJ.cs" />
-    <Compile Include="Parameters.cs" />
+    <Compile Include="DataListener.cs" />
+    <Compile Include="MeshtoOBJ.cs" />
+    <Compile Include="MeshListener.cs" />
+    <Compile Include="Nameable.cs" />
     <Compile Include="LemmingsComponent.cs" />
     <Compile Include="LemmingsInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="RunForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -89,12 +95,28 @@
     <Compile Include="VarEngine.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="RunForm.resx">
       <DependentUpon>RunForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="VarControl.resx">
       <DependentUpon>VarControl.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Icons.ai" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Icons_DataListener.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Icons_LemmingsComponent.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Icons_MeshListener.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

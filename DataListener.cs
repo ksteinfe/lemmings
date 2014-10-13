@@ -8,63 +8,20 @@ using Grasshopper.Kernel.Types;
 using Rhino.Geometry;
 
 namespace Lemmings {
-    public class JSONComponent : GH_Component {
-
-        //public String namexxx;
-        //public String DefaultName = "UNTITLED";
-        private String m_name;
-        public String JSONName {
-            get { return m_name; }
-            set {
-                m_name = value;
-                Message = m_name;
-            }
-        }
-        protected String nameLetter;
-        private static String namePrefix = "dvar_";
-        public bool customNameSet;
-        
-
+    public class DataListener: NameableComponent {
 
         public bool JSONIsPopulated;
         public String JSONString;
-
-
         enum DataStructure { Singleton, List, Tree };
-        
-        public JSONComponent()
-            : base("JSON Writer", "JSON",
-                "Description",
-                "Params", "Lemmings") {
+                
+        public DataListener()
+            : base("Lemmings Data Listener", "DataListen", "Saves textual data as JSON to a Lemmings ZIP file") {
                     this.JSONIsPopulated = false;
-                    this.customNameSet = false;
-                    this.nameLetter = "X";
                     this.JSONString = "";
-                    
+                    this.namePrefix = "dvar_";
         }
-
-        public override void AddedToDocument(GH_Document document) {
-            base.AddedToDocument(document);
-            SetUniqueNameletter(document);
-        }
-        public override void MovedBetweenDocuments(GH_Document oldDocument, GH_Document newDocument) {
-            base.MovedBetweenDocuments(oldDocument, newDocument);
-            SetUniqueNameletter(newDocument);
-        }
-
-        private void SetUniqueNameletter(GH_Document document) {
-            // finds other LemmingsJSONComponents in current document
-            List<String> existingNames = new List<String>();
-            Guid jsonid = this.ComponentGuid;
-            foreach (IGH_DocumentObject docobj in document.Objects) if (docobj.ComponentGuid == jsonid) existingNames.Add(((JSONComponent)docobj).nameLetter);
-
-            this.nameLetter = GH_ComponentParamServer.InventUniqueNickname("abcdefghijklmnopqrstuv", existingNames);
-            if (!customNameSet) this.JSONName = JSONComponent.namePrefix + this.nameLetter;
-        }
-
 
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager) {
-            //pManager.AddTextParameter("Key", "K", "The key to assign to the generated JSON array.", GH_ParamAccess.item, this.DefaultName);
             pManager.AddGenericParameter("Values", "V", "Any kind of data (we'll do what we can)", GH_ParamAccess.tree);
             //TODO: add flag to allow/disallow nulls
         }
@@ -74,17 +31,15 @@ namespace Lemmings {
         }
 
         protected override void SolveInstance(IGH_DataAccess DA) {
-            //this.Name = this.DefaultName;
             this.JSONIsPopulated = false;
             this.JSONString = "";
-            //DA.GetData(0, ref namexxx);
             Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo> tree = new Grasshopper.Kernel.Data.GH_Structure<Grasshopper.Kernel.Types.IGH_Goo>();
             if (!DA.GetDataTree(0, out tree)) { return; }
             
             
             String JSONOpen = "";
             String JSONClose = "";
-            JSONOpen = @"""" + this.JSONName + @""":{";
+            JSONOpen = @"""" + this.ComponentName + @""":{";
             JSONClose = "}";
 
             DataStructure dim;
@@ -168,47 +123,8 @@ namespace Lemmings {
             //DA.SetData(0, tree.PathCount.ToString());
         }
 
-
-        public override bool Write(GH_IO.Serialization.GH_IWriter writer) {
-            // First add our own field.
-            if (this.customNameSet) writer.SetString("JSONName", this.JSONName);
-            // Then call the base class implementation.
-            return base.Write(writer);
-        }
-        public override bool Read(GH_IO.Serialization.GH_IReader reader) {
-            // First read our own field.
-            if (reader.ItemExists("JSONName")) {
-                this.customNameSet = true;
-                this.JSONName = reader.GetString("JSONName");
-            }
-            // Then call the base class implementation.
-            return base.Read(reader);
-        }
-
-
-
-        public override bool AppendMenuItems(ToolStripDropDown menu) {
-            // Place a call to the base class to ensure the default parameter menu is still there and operational.
-            base.AppendAdditionalComponentMenuItems(menu);
-
-            // Now insert your own custom menu items.
-            //Menu_AppendSeparator(menu);
-            Menu_AppendTextItem(menu, this.JSONName, Menu_ParentLayerNameKeyDown, Menu_ParentLayerNameChanged, true);
-            //Menu_AppendItem(menu, "Run Lemmings!", Menu_RunLemmingsClicked);
-            return true;
-        }
-        
-        private void Menu_ParentLayerNameKeyDown(Object sender, EventArgs e) {   Menu_ParentLayerNameChanged(sender, ((Grasshopper.GUI.GH_MenuTextBox)sender).Text);    }
-        public void Menu_ParentLayerNameChanged(Object sender, string text) {
-            this.JSONName = text;
-            this.customNameSet = true;
-            ExpirePreview(true);
-            ExpireSolution(true);
-        }
-
-
         protected override System.Drawing.Bitmap Icon {
-            get {return null;}
+            get {return Lemmings.Properties.Resources.Icons_DataListener;}
         }
 
         public override Guid ComponentGuid { get { return new Guid("{0f35898d-021f-4093-bc10-d815730eb0cc}"); } }

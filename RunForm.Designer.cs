@@ -205,7 +205,7 @@
             this.Controls.Add(this.button1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(250, 317);
+            this.MaximumSize = new System.Drawing.Size(350, 417);
             this.MinimizeBox = false;
             this.MinimumSize = new System.Drawing.Size(250, 317);
             this.Name = "RunForm";
